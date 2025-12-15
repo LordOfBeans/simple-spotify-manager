@@ -130,7 +130,7 @@ class Auth:
             if resp.status_code == 200:
                 return json.loads(resp.text)
         # TODO: Change exception type to something more meaningful
-        raise Exception(f'Failed to get {resp.request.url} with status code {resp.status_code}')
+        raise Exception(f'Failed to GET {resp.request.url} with status code {resp.status_code}')
 
     def postEndpoint(self, endpoint, body):
         if endpoint[0] != '/':
@@ -148,6 +148,28 @@ class Auth:
                 self.refreshToken()
                 resp = requests.post(url, json=body, headers=self.headers)
                 if resp.status_code != 201:
-                    raise Exception(f'Failed to post to {resp.request.url} after token refresh with status code {resp.status_code}')
+                    raise Exception(f'Failed to POST to {resp.request.url} after token refresh with status code {resp.status_code}')
             else:
-                raise Exception(f'Failed to post to {resp.request.url} with status code {resp.status_code}')
+                raise Exception(f'Failed to POST to {resp.request.url} with status code {resp.status_code}')
+        return json.loads(resp.text)
+
+    def putEndpoint(self, endpoint, body):
+        if endpoint[0] != '/':
+            endpoint = '/' + endpoint
+        url = 'https://api.spotify.com/v1' + endpoint
+        return self.putUrl(url, body)
+
+    # TODO: Improve exceptions
+    def putUrl(self, url, body):
+        if datetime.now() > self.expiration:
+            self.refreshToken()
+        resp = requests.put(url, json=body, headers=self.headers)
+        if resp.status_code != 200:
+            if resp.status_code == 401:
+                self.refreshToken()
+                resp = requests.put(url, json=body, headers=self.headers)
+                if resp.status_code != 200:
+                    raise Exception(f'Failed to PUT to {resp.request.url} after token refresh with status code {resp.status_code}')
+            else:
+                raise Exception(f'Failed to PUT to {resp.request.url} with status code {resp.status_code}')
+        return json.loads(resp.text)

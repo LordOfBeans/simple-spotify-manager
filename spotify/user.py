@@ -1,5 +1,5 @@
 from spotify.auth import Auth
-from spotify.entity import Song
+from spotify.playlist import Playlist
 
 import requests
 import json
@@ -33,10 +33,27 @@ class User:
             info = self.auth.getUrl(next)
         return return_list
 
-    def getPlaylistSongs(self, playlist_id):
+    # Returns a Playlist object
+    # TODO: Modify so this uses the Get Playlist endpoint instead of the Get Playlist Items endpoint
+    def getPlaylist(self, playlist_id):
         endpoint = f'/playlists/{playlist_id}/tracks'
-        songs = self.__getListItems(endpoint, lambda x: Song(x, 'spotify'))
-        return songs
+        tracks = self.__getListItems(endpoint, lambda x: x['track'])
+        playlist = Playlist(playlist_id, tracks)
+        return playlist
+
+    def __reorderPlaylist(self, playlist_id, reorder_steps):
+        endpoint = f'/playlists/{playlist_id}/tracks'
+        snapshot_id = None
+        for step in reorder_steps:
+            if snapshot_id is not None:
+                step['snapshot_id'] = snapshot_id
+            resp = self.auth.putEndpoint(endpoint, step)
+            snapshot_id = resp['snapshot_id']
+
+    # Push any changes to the playlist back to Spotify
+    def pushPlaylist(self, playlist):
+        reorder_steps = playlist.get_reorder_steps()
+        self.__reorderPlaylist(playlist.id, reorder_steps)
 
     def addPlaylistSongs(self, playlist_id, songs, position=None):
         if len(songs) == 0: #TODO: Is there a more user-friendly behavior here?
