@@ -14,10 +14,7 @@ def build_action_queue(config):
     for alias, data in sources.items():
         if 'sort' in data:
             queue.add_action(alias, data['id'], 'GET', {})
-            queue.add_action(alias, data['id'], 'SORT', {
-                'by': data['sort']['by'],
-                'reverse': data['sort']['reverse']
-            })
+            queue.add_action(alias, data['id'], 'SORT', data['sort'])
 
     for alias, data in conglomerates.items():
         for source_alias in data['sources']:
@@ -47,11 +44,13 @@ def main():
             playlist_dict[action.playlist_alias] = playlist
         elif action.action_type == 'SORT':
             playlist = playlist_dict[action.playlist_alias]
-            playlist.sort(
-                action.action_spec['by'],
-                action.action_spec['reverse']
-            )
-            playlist.get_reorder_steps()
+            kwargs = {}
+            for key, value in action.action_spec.items():
+                if key == 'by': 
+                    by = value
+                else:
+                    kwargs[key] = value
+            playlist.sort(by, **kwargs)
         elif action.action_type == 'ADD':
             pass
 

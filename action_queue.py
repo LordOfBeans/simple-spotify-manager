@@ -5,6 +5,7 @@ class Action:
         self.action_type = action_type
         self.action_spec = action_spec
 
+    # TODO: Update for more specificity
     def __str__(self):
         if self.action_type == 'GET':
             return f'GET {self.playlist_alias}'
@@ -13,11 +14,7 @@ class Action:
             return f'ADD {source_list} TO {self.playlist_alias}'
         elif self.action_type == 'SORT':
             order = self.action_spec['by']
-            reverse = self.action_spec['reverse']
-            if not reverse:
-                return f'SORT {self.playlist_alias} BY {order}'
-            else:
-                return f'SORT {self.playlist_alias} BY {order} IN REVERSE'
+            return f'SORT {self.playlist_alias} BY {order}'
 
 class ActionQueue:
     def __init__(self):

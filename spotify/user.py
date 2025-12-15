@@ -54,19 +54,3 @@ class User:
     def pushPlaylist(self, playlist):
         reorder_steps = playlist.get_reorder_steps()
         self.__reorderPlaylist(playlist.id, reorder_steps)
-
-    def addPlaylistSongs(self, playlist_id, songs, position=None):
-        if len(songs) == 0: #TODO: Is there a more user-friendly behavior here?
-            return
-        endpoint = f'/playlists/{playlist_id}/tracks'
-        groups = [songs[i * 100: (i+1) * 100] for i in range(0, int(len(songs)/100)+1)] # Split into groups of 100 songs
-        for i in range(0, len(groups)):
-            uri_list = []
-            for song in groups[i]:
-                uri_list.append(song.uri)
-            body = {
-                'uris': uri_list
-            }
-            if position is not None:
-                body['position'] = i * 100 + position
-            self.auth.postEndpoint(endpoint, body)

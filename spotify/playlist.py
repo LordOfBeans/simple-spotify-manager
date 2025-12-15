@@ -1,3 +1,5 @@
+import random
+
 class Playlist:
     def __init__(self, id, tracks):
         self.id = id
@@ -9,14 +11,15 @@ class Playlist:
         for track in tracks:
             self.new_order.append(track)
 
-    def sort(self, by, reverse):
+    def sort(self, by, reverse=False, offset=0):
         if by == 'release_date': # Also sorts by track listing, except we nullify the reversal for that
             if not reverse:
                 key = lambda x: (x['album']['release_date'], x['disc_number'], x['track_number'])
             else:
                 key = lambda x: (x['album']['release_date'], -x['disc_number'], -x['track_number'])
-        new_order = sorted(self.tracks, key=key, reverse=reverse)
-        self.new_order = new_order
+        elif by == 'random':
+            key = lambda x: random.random()
+        self.new_order = self.new_order[:offset] + sorted(self.new_order[offset:], key=key, reverse=reverse)
 
     def __has_track(self, track_id):
         for track in self.tracks:
