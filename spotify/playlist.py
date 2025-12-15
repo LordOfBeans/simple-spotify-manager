@@ -1,4 +1,5 @@
 import random
+import hashlib
 
 class Playlist:
     def __init__(self, id, tracks):
@@ -19,6 +20,9 @@ class Playlist:
                 key = lambda x: (x['album']['release_date'], -x['disc_number'], -x['track_number'])
         elif by == 'random':
             key = lambda x: random.random()
+        elif by == 'hash': # Should appear random but remain fairly static over program runs
+            # Using hashlib because the default hash() function in python is randomly salted
+            key = lambda x: hashlib.md5(bytes(x['name'] + x['artists'][0]['name'], 'utf-8')).hexdigest()
         self.new_order = self.new_order[:offset] + sorted(self.new_order[offset:], key=key, reverse=reverse)
 
     def __has_track(self, track_id):

@@ -55,6 +55,7 @@ def main():
             pass
 
     for alias, playlist in playlist_dict.items():
+        print(f'PUSH UPDATES TO {alias}')
         me.pushPlaylist(playlist)
 
 
