@@ -1,16 +1,14 @@
 import random
 import hashlib
+from functools import reduce
 
 class Playlist:
     def __init__(self, id, tracks):
         self.id = id
-        self.tracks = tracks
-
-        # The following are important for when I want to push changes
-        self.new_tracks = []
-        self.new_order = []
+        self.old_list = tracks # Before any changes are made
+        self.new_list = [] # After changes are made
         for track in tracks:
-            self.new_order.append(track)
+            self.new_list.append(track)
 
     def sort(self, by, reverse=False, offset=0):
         if by == 'release_date': # Also sorts by track listing, except we nullify the reversal for that
@@ -18,34 +16,34 @@ class Playlist:
                 key = lambda x: (x['album']['release_date'], x['disc_number'], x['track_number'])
             else:
                 key = lambda x: (x['album']['release_date'], -x['disc_number'], -x['track_number'])
-        elif by == 'random':
-            key = lambda x: random.random()
         elif by == 'hash': # Should appear random but remain fairly static over program runs
             # Using hashlib because the default hash() function in python is randomly salted
-            key = lambda x: hashlib.md5(bytes(x['name'] + x['artists'][0]['name'], 'utf-8')).hexdigest()
-        self.new_order = self.new_order[:offset] + sorted(self.new_order[offset:], key=key, reverse=reverse)
+            key = lambda x: hashlib.md5(bytes(x['uri'], 'utf-8')).hexdigest()
+        self.new_list = self.new_list[:offset] + sorted(self.new_list[offset:], key=key, reverse=reverse)
 
     def __has_track(self, track_id):
-        for track in self.tracks:
+        for track in self.old_list:
             if track['id'] == track_id:
                 return True
         return False
 
-    def add(self, tracks):
+    def add(self, tracks, position=-1):
         for track in tracks:
             if not self.__has_track(track['id']):
-                self.tracks.append(track)
-                self.new_tracks.append(track)
-                self.new_order.append(track)
+                if position == -1:
+                    self.old_list.append(track)
+                    self.new_list.append(track)
+                else:
+                    self.old_list.insert(position, track)
 
     # Returns params to reorder the playlist so it matches its new state
     # Uses an algorithm similar to insertion sort, but without the sorting
     def get_reorder_steps(self):
         order_dict = {}
-        for i in range(0, len(self.new_order)):
-            order_dict[self.new_order[i]['id']] = i
+        for i in range(0, len(self.new_list)):
+            order_dict[self.new_list[i]['id']] = i
         order_list = []
-        for track in self.tracks:
+        for track in self.old_list:
             order_list.append(track['id'])
 
         steps_list = []
