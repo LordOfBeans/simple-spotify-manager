@@ -17,6 +17,8 @@ def build_action_queue(config):
             queue.add_action(alias, data['id'], 'SORT', data['sort'])
 
     for alias, data in conglomerates.items():
+        if not queue.check_get(alias):
+            queue.add_action(alias, data['id'], 'GET', {})
         for source_alias in data['sources']:
             if not queue.check_get(source_alias):
                 source = sources[source_alias]

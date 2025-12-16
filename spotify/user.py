@@ -1,5 +1,6 @@
 from spotify.auth import Auth
 from spotify.playlist import Playlist
+from spotify.operation_queue import build_operation_queue
 
 import requests
 import json
@@ -52,5 +53,7 @@ class User:
 
     # Push any changes to the playlist back to Spotify
     def pushPlaylist(self, playlist):
-        reorder_steps = playlist.get_reorder_steps()
-        self.__reorderPlaylist(playlist.id, reorder_steps)
+        queue = build_operation_queue(playlist)
+        while not queue.is_empty():
+            op = queue.pop_operation()
+            print(op)

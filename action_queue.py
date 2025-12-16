@@ -24,7 +24,7 @@ class ActionQueue:
         action = Action(playlist_alias, playlist_id, action_type, action_spec)
         self.queue.append(action)
 
-    def pop_action(self, ):
+    def pop_action(self):
         return self.queue.pop(0)
 
     def check_get(self, playlist_alias):
