@@ -42,14 +42,29 @@ class User:
         playlist = Playlist(playlist_id, tracks)
         return playlist
 
-    def __reorderPlaylist(self, playlist_id, reorder_steps):
+    def __addTracks(self, playlist_id, uri_list, position=None):
         endpoint = f'/playlists/{playlist_id}/tracks'
-        snapshot_id = None
-        for step in reorder_steps:
-            if snapshot_id is not None:
-                step['snapshot_id'] = snapshot_id
-            resp = self.auth.putEndpoint(endpoint, step)
-            snapshot_id = resp['snapshot_id']
+        body = {
+            'uris': uri_list
+        }
+        if position is not None:
+            body['position'] = position
+        resp = self.auth.postEndpoint(endpoint, body)
+
+    def __moveTracks(self, playlist_id, move_params):
+        endpoint = f'/playlists/{playlist_id}/tracks'
+        resp = self.auth.putEndpoint(endpoint, move_params)
+
+    def __removeTracks(self, playlist_id, uri_list):
+        endpoint = f'/playlists/{playlist_id}/tracks'
+        track_list = []
+        for uri in uri_list:
+            track_list.append({'uri':uri})
+        body = {
+            'tracks': track_list
+        }
+        resp = self.auth.deleteEndpoint(endpoint, body) 
+
 
     # Push any changes to the playlist back to Spotify
     def pushPlaylist(self, playlist):
@@ -57,3 +72,17 @@ class User:
         while not queue.is_empty():
             op = queue.pop_operation()
             print(op)
+            if op.op_type == 'REMOVE':
+                uri_list = []
+                for track in op.specs['tracks']:
+                    uri_list.append(track['uri'])
+                self.__removeTracks(playlist.id, uri_list)
+            elif op.op_type == 'MOVE':
+                self.__moveTracks(playlist.id, op.specs)
+            elif op.op_type == 'ADD':
+                uri_list = []
+                for track in op.specs['tracks']:
+                    uri_list.append(track['uri'])
+                position = op.specs['position']
+                self.__addTracks(playlist.id, uri_list, position=position)
+

@@ -15,6 +15,10 @@ class Action:
         elif self.action_type == 'SORT':
             order = self.action_spec['by']
             return f'SORT {self.playlist_alias} BY {order}'
+        elif self.action_type == 'CLEANUP':
+            return f'CLEAN UP {self.playlist_alias}'
+        elif self.action_type == 'PUSH':
+            return f'PUSH {self.playlist_alias} CHANGES TO SPOTIFY'
 
 class ActionQueue:
     def __init__(self):
@@ -32,6 +36,19 @@ class ActionQueue:
             if action.action_type == 'GET' and action.playlist_alias == playlist_alias:
                 return True
         return False
+
+    # If there is a PUSH for that playlist, returns its position in the queue
+    # Otherwise, returns -1
+    def check_push(self, playlist_alias):
+        for i in range(0, len(self.queue)):
+            action = self.queue[i]
+            if action.action_type == 'PUSH' and action.playlist_alias == playlist_alias:
+                return i
+        return -1
+
+    # Remove the action at the specified index from the queue
+    def remove(self, index):
+        self.queue.pop(index)
 
     def is_empty(self):
         return len(self.queue) == 0

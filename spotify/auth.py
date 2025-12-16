@@ -173,3 +173,26 @@ class Auth:
             else:
                 raise Exception(f'Failed to PUT to {resp.request.url} with status code {resp.status_code}')
         return json.loads(resp.text)
+
+
+    # Delete refers to the HTTP request method DELETE 
+    def deleteEndpoint(self, endpoint, body):
+        if endpoint[0] != '/':
+            endpoint = '/' + endpoint
+        url = 'https://api.spotify.com/v1' + endpoint
+        return self.deleteUrl(url, body)
+
+    # TODO: Improve exceptions
+    def deleteUrl(self, url, body):
+        if datetime.now() > self.expiration:
+            self.refreshToken()
+        resp = requests.delete(url, json=body, headers=self.headers)
+        if resp.status_code != 200:
+            if resp.status_code == 401:
+                self.refreshToken()
+                resp = requests.delete(url, json=body, headers=self.headers)
+                if resp.status_code != 200:
+                    raise Exception(f'Failed to PUT to {resp.request.url} after token refresh with status code {resp.status_code}')
+            else:
+                raise Exception(f'Failed to PUT to {resp.request.url} with status code {resp.status_code}')
+        return json.loads(resp.text)

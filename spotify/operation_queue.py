@@ -8,6 +8,10 @@ class Operation:
         if self.op_type == 'REMOVE':
             num = len(self.specs['tracks'])
             ret_str = f'{self.playlist_id}: REMOVE {num} TRACKS'
+            for track in self.specs['tracks']:
+                track_name = track['name']
+                ret_str += f'\n\tREMOVE {track_name}'
+            return ret_str
         elif self.op_type == 'MOVE':
             range_start = self.specs['range_start']
             range_end = range_start + self.specs['range_length'] - 1
@@ -17,6 +21,9 @@ class Operation:
             position = self.specs['position']
             num = len(self.specs['tracks'])
             ret_str = f'{self.playlist_id}: ADD {num} TRACKS AT POSITION {position}'
+            for track in self.specs['tracks']:
+                track_name = track['name']
+                ret_str += f'\n\tADD {track_name}'
             return ret_str
 
 class OperationQueue:
@@ -61,7 +68,7 @@ def __get_reorder_steps(old_order_list, new_order_dict):
 
 def list_chunks(full_list, chunk_size):
     for i in range(0, len(full_list), chunk_size):
-        yield full_list[i:i+n]
+        yield full_list[i:i+chunk_size]
 
 # Creates an operation queue from the changes made to a playlist
 # Operations read from the queue can be used with Spotify API to edit playlist
@@ -123,7 +130,7 @@ def build_operation_queue(playlist):
         items = []
         expected = add_list[i][0]
         position = expected
-        while len(items) < 100 and add_list[i][0] == expected:
+        while len(items) < 100 and i < len(add_list) and add_list[i][0] == expected:
             uri = add_list[i][1]
             name = track_uri_dict[uri]['name']
             items.append({
