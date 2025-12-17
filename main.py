@@ -33,6 +33,8 @@ def build_action_queue(config):
             })
         if 'cleanup' in data and data['cleanup']:
             queue.add_action(alias, data['id'], 'CLEANUP', {})
+        if 'sort' in data:
+            queue.add_action(alias, data['id'], 'SORT', data['sort'])
         queue.add_action(alias, data['id'], 'PUSH', {})
     return queue
 
