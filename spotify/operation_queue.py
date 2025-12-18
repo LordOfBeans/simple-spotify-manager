@@ -48,7 +48,7 @@ def __get_reorder_steps(old_order_list, new_order_dict):
         for i in range(curr_num + 1, len(old_order_list)):
             if new_order_dict[old_order_list[i]] == curr_num: # Found where we need to start moving
                 range_length = 1
-                while i + range_length < len(old_order_list) and new_order_dict[old_order_list[i + range_length]] == curr_num + range_length:
+                while i + range_length < len(old_order_list) and new_order_dict[old_order_list[i + range_length]] == curr_num + range_length and range_length < 100:
                     range_length += 1
                 # Check if we can also move subsequent tracks to limit number of requets
                 move = {
